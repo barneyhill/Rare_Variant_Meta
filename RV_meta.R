@@ -12,6 +12,7 @@ p <- add_argument(p, '--info_file_path', help = 'LD matrix (GtG) marker informat
 p <- add_argument(p, '--gene_file_prefix', help = 'File name for sparse GtG file excluding gene name', nargs = Inf)
 p <- add_argument(p, '--gwas_path', help = 'path to GWAS summary', nargs = Inf)
 p <- add_argument(p, '--output_prefix', help = 'output prefix')
+p <- add_argument(p, '--mem', help='high memory mode - improves performance at the cost of memory usage')
 
 argv <- parse_args(p)
 
@@ -26,11 +27,16 @@ source('./Lib_v3.R')
 #Loading the list of genes to analyze
 
 genes <- c()
+gwases <- c()
+SNP_infos <- c()
 
 for (i in 1:argv$num_cohorts){
     SNP_info = fread(argv$info_file_path[i])
+    SNP_infos[[i]] <- SNP_info
     genes <- c(genes, SNP_info$Set)
+    gwases[[i]] <- fread(argv$gwas_path[i])
 }
+
 genes = unique(genes)
 
 
@@ -56,11 +62,13 @@ res_pval_0.50_noadj <- c()
 res_pval_1.00_noadj <- c()
 
 
-load_cohort <- function(cohort, gene, SNPinfo){
+load_cohort <- function(cohort, gene, SNPinfos, gwases){
     ############Loading Cohort1 LD and GWAS summary###############
+    
+    SNPinfo <- SNPinfos[[cohort]]
     SNP_info_gene = SNPinfo[which(SNPinfo$Set == gene)]
 
-    gwas = fread(argv$gwas_path[cohort])
+    gwas = gwases[[i]]
     n.vec <<- c(n.vec, gwas$N_case[1] + gwas$N_ctrl[1])
 
     SNP_info_gene$Index <- SNP_info_gene$Index + 1
@@ -106,8 +114,7 @@ for (gene in genes){
     IsExistSNV.vec <- c()
     
     for (i in 1:argv$num_cohorts){
-        SNP_info = fread(argv$info_file_path[i])
-        load_cohort(i, gene, SNP_info)
+        load_cohort(i, gene, SNP_infos, gwases)
     }
 
 

@@ -1,5 +1,8 @@
 # Rare Variant Meta-Analysis
 
+ADDED: Optimisations leading to increased performance but increased memory usage
+
+
 ## Input Files
 
 -`LD matrix` : can be obtained from SAIGE `step3_LDmat.R`

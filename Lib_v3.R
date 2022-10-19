@@ -195,7 +195,7 @@ Get_META_Data_OneSet<-function(SMat.list, Info.list, n.vec, IsExistSNV.vec,  n.c
 
 	# Bugfix (19/10/22) Fix empty gene	
 	if (n.all == 0){
-		return(NULL)		
+		return("EMPTY")		
 	}
 
 	# Get meta-analysis score (S_ALL) and GtG matrix

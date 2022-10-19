@@ -122,7 +122,7 @@ for (gene in genes){
     start_MetaOneSet <- Sys.time()
     out_adj<-Run_Meta_OneSet(SMat.list, Info_adj.list, n.vec=n.vec, IsExistSNV.vec=IsExistSNV.vec,  n.cohort=argv$num_cohorts)
 
-	if (out_adj==NULL) next
+	if (out_adj=="EMPTY") next
     end_MetaOneSet <- Sys.time()
     cat('elapsed time for Run_Meta_OneSet ', end_MetaOneSet - start_MetaOneSet , '\n')
 

@@ -113,17 +113,18 @@ for (gene in genes){
 
     n.vec <- c()
     IsExistSNV.vec <- c()
-    
+    end = FALSE
     for (i in 1:argv$num_cohorts){
         load_cohort(i, gene, SNP_infos, gwases)
+		if (nrow(Info_adj.list[[cohort]]) == 0) end = TRUE
     }
-
+	
+	if (end) next
 
     ###########Meta-analysis##################
     start_MetaOneSet <- Sys.time()
     out_adj<-Run_Meta_OneSet(SMat.list, Info_adj.list, n.vec=n.vec, IsExistSNV.vec=IsExistSNV.vec,  n.cohort=argv$num_cohorts)
 
-	if (out_adj=="EMPTY") next
     end_MetaOneSet <- Sys.time()
     cat('elapsed time for Run_Meta_OneSet ', end_MetaOneSet - start_MetaOneSet , '\n')
 

@@ -193,6 +193,11 @@ Get_META_Data_OneSet<-function(SMat.list, Info.list, n.vec, IsExistSNV.vec,  n.c
 	SnpID.all<-unique(SnpID.all)
 	n.all<-length(SnpID.all)
 
+	# Bugfix (19/10/22) Fix empty gene	
+	if (n.all == 0){
+		return(NULL)		
+	}
+
 	# Get meta-analysis score (S_ALL) and GtG matrix
 	SMat_All<-matrix(0,n.all, n.all)
 	Info_ALL<-data.frame(SNPID = SnpID.all, IDX=1:length(SnpID.all)

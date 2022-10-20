@@ -114,7 +114,7 @@ for (gene in genes){
     IsExistSNV.vec <- c()
     end = FALSE
     for (i in 1:argv$num_cohorts){
-		if (!file.exists(argv$gene_file_prefix[cohort], gene, '.txt')){	
+		if (!file.exists(argv$gene_file_prefix[i], gene, '.txt')){	
 			end = TRUE
 			break
 		}

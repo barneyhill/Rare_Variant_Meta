@@ -1,6 +1,5 @@
 library(argparser, quietly = TRUE)
-options(warn=2)
-options(nwarnings = 1000000) 
+
 #Num cohorts : 
 #CHR : 
 #LD_mat : info file path * num cohorts 

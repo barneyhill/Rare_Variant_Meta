@@ -116,7 +116,7 @@ for (gene in genes){
     end = FALSE
     for (i in 1:argv$num_cohorts){
         load_cohort(i, gene, SNP_infos, gwases)
-		if (nrow(Info_adj.list[[cohort]]) == 0) end = TRUE
+		if (nrow(Info_adj.list[[i]]) == 0) end = TRUE
     }
 	
 	if (end) next

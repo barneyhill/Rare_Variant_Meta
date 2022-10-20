@@ -286,6 +286,7 @@ Run_Meta_OneSet<-function(SMat.list, Info.list, n.vec, IsExistSNV.vec,  n.cohort
 	
 
 	if(length(idx_col)> 0){
+		print("A")
 		SNP_list<-list(); SNP_list[[1]]<-idx_col
 		#nSNP1<<-nSNP; SNP_list1<<-SNP_list
 		Collapse_Matrix = Get_Collabsing(nSNP, SNP_list)
@@ -293,6 +294,7 @@ Run_Meta_OneSet<-function(SMat.list, Info.list, n.vec, IsExistSNV.vec,  n.cohort
 		Phi_C = (Collapse_Matrix %*% OUT_Meta$Phi_w) %*% t(Collapse_Matrix)
 
 	} else {
+		print("B")
 		S_M_C = OUT_Meta$S_w
 		Phi_C = OUT_Meta$Phi_w
 	}

@@ -114,13 +114,13 @@ for (gene in genes){
     IsExistSNV.vec <- c()
     end = FALSE
     for (i in 1:argv$num_cohorts){
-		if (!file.exists(paste(argv$gene_file_prefix[i], gene, '.txt'))){	
-			end = TRUE
-			break
-		}
-		
+	
+        if (file.size(paste(argv$gene_file_prefix[i], gene, '.txt', sep="")) == 0L){
+                end = TRUE
+                break
+        }
+
     	load_cohort(i, gene, SNP_infos, gwases)
-		if (nrow(Info_adj.list[[i]]) == 0 | nrow(Info_adj.list[[i]]) == 1) end = TRUE
     }
 	
 	if (end) next

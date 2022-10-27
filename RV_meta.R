@@ -121,6 +121,7 @@ for (gene in genes){
         }
 
     	load_cohort(i, gene, SNP_infos, gwases)
+		if (nrow(Info_adj.list[[i]]) == 0 | nrow(Info_adj.list[[i]]) == 1) end = TRUE
     }
 	
 	if (end) next

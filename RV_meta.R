@@ -1,5 +1,4 @@
 library(argparser, quietly = TRUE)
-library(progress)
 #Num cohorts : 
 #CHR : 
 #LD_mat : info file path * num cohorts 

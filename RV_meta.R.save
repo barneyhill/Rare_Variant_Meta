@@ -1,5 +1,5 @@
 library(argparser, quietly = TRUE)
-library(progress)
+
 #Num cohorts : 
 #CHR : 
 #LD_mat : info file path * num cohorts 
@@ -39,45 +39,44 @@ for (i in 1:argv$num_cohorts){
     gwases[[i]] <- fread(argv$gwas_path[i])
 }
 
-filter_annos <- function(gwases, anno_file, annos){
+filter_annos <- function(SNP_infos, anno_file, annos){
 	con = file(anno_file, "r")
 	i = 0
 
 	variant_annos = data.table("var"=character(),
 							   "anno"=character())
- 	pb <- progress_bar$new(total = 31730)   	
+	
 	while ( TRUE ) {
-		pb$tick()
 		line = readLines(con, n = 1)
 		if ( length(line) == 0 ) {
 			break
 		}
 		line = strsplit(line, split=" ")
 		if ( i %% 2 == 0 ){
-			variants = line[[1]][3:length(line[[1]])]
+			variants = line[3:length(line)]
 		} else {
-			tmp = data.table("var"=variants, "anno"=line[[1]][3:length(line[[1]])])
+			tmp = data.table("var"=variants, "anno"=line[3:length(line)])
 			variant_annos = rbind(variant_annos, tmp)
 		}
 		i = i + 1
 	}
-	
-	print("annofile read")
+
 	close(con)
 	
 	variant_annos = variant_annos[variant_annos$annos %in% annos]
 	for (i in 1:argv$num_cohorts){
-		gwases[[i]]$MarkerID <- gsub("chr","",as.character(SNP_infos[[i]]$variant))
+		SNP_infos[[i]]$variant <- paste(SNP_infos[[i]]$CHR , ":",
+										SNP_infos[[i]]$POS , ":",
+										SNP_infos[[i]]$Major_Allele , ":",
+										SNP_infos[[i]]$Minor_Allele)
+		SNP_infos[[i]]$variant <- gsub("chr","",as.character(SNP_infos[[i]]$variant))
 		variant_annos$var <- gsub("chr","",as.character(variant_annos$var))
-		print(variant_annos)
-		print(variant_annos["var",])
-		gwases[[i]] = gwases[[i]][gwases[[i]]$MarkerID %in% variant_annos["var"]]
-		print("filtered gwas cohort", i)
+		SNP_infos[[i]] = subset(SNP_infos[[i]], variant %in% variant_annos["var",])
 	}	
-	return(gwases)
+	return(SNP_infos)
 }
 
-gwases = filter_annos(gwases, argv$anno_file, argv$annos)
+SNP_infos = filter_annos(SNP_infos, argv$anno_file, argv$annos)
 
 
 genes = unique(genes)
@@ -190,8 +189,8 @@ for (gene in genes){
         res_pval_1.00_adj <- c(res_pval_1.00_adj, out_adj$param$p.val.each[7])
     }else{
         res_pval_adj <- c(res_pval_adj, out_adj$p.value)
-        res_pval_0.00_adj <- c(res_pval_0.00_adj, NA)
-        res_pval_0.01_adj <- c(res_pval_0.01_adj, NA)
+        res_pval_0.00_adj <- c(res_pval_0.00_adj, NAexit:exit
+- c(res_pval_0.01_adj, NA)
         res_pval_0.04_adj <- c(res_pval_0.04_adj, NA)
         res_pval_0.09_adj <- c(res_pval_0.09_adj, NA)
         res_pval_0.25_adj <- c(res_pval_0.25_adj, NA)

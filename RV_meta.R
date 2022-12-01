@@ -1,11 +1,13 @@
 library(argparser, quietly = TRUE)
-
+library(progress)
 #Num cohorts : 
 #CHR : 
 #LD_mat : info file path * num cohorts 
 #GWAS summary : GWAS summary path * num cohorts
 #Output prefix : 
 p <- arg_parser('Run Meta-Analysis using rare variants')
+p <- add_argument(p, '--anno_file', help = 'annotation file')
+p <- add_argument(p, '--annos', help = 'annotations to include', nargs= Inf)
 p <- add_argument(p, '--num_cohorts', help = 'number of cohorts')
 p <- add_argument(p, '--chr', help = 'chromosome number')
 p <- add_argument(p, '--info_file_path', help = 'LD matrix (GtG) marker information file path', nargs = Inf)
@@ -19,7 +21,6 @@ argv <- parse_args(p)
 library(SKAT, quietly = TRUE)
 library(data.table, quietly = TRUE)
 library(dplyr, quietly = TRUE)
-
 
 source('./Lib_v3.R')
 
@@ -37,8 +38,53 @@ for (i in 1:argv$num_cohorts){
     gwases[[i]] <- fread(argv$gwas_path[i])
 }
 
-genes = unique(genes)
+filter_annos <- function(gwases, anno_file, annotations){
+	con = file(anno_file, "r")
+	i = 0
 
+	#variant_annos = data.table(var=character(), anno=character())
+	row_dfs = list()
+	while ( TRUE ) {
+		line = readLines(con, n = 1)
+		if ( length(line) < 1 ){ break }
+		line = strsplit(line, split=" ")
+		if ( length(line[[1]]) < 3 ) {
+			next	
+		}
+		if ( i %% 2 == 0 ){
+			variants = line[[1]][3:length(line[[1]])]
+		} else {
+			row_dfs = append(row_dfs, list(data.table(var=variants, anno=line[[1]][3:length(line[[1]])])))
+		}
+		i = i + 1
+	}
+
+	print("binding rows")	
+	variant_annos = bind_rows(row_dfs)
+	
+	print("annofile read")
+	close(con)
+
+	print(variant_annos)
+	variant_annos = variant_annos[anno == annotations]
+	
+	print(variant_annos)
+	for (i in 1:argv$num_cohorts){
+		print("cohort1")
+		gwases[[i]]$MarkerID <- gsub("chr","",as.character(gwases[[i]]$MarkerID))
+		variant_annos$var <- gsub("chr","",as.character(variant_annos$var))
+		print(gwases[[i]])	
+		print(variant_annos)
+		gwases[[i]] = gwases[[i]][MarkerID %in% variant_annos$var]
+		print("filtered gwas cohort", i)
+	}	
+	return(gwases)
+}
+
+gwases = filter_annos(gwases, argv$anno_file, argv$annos)
+
+
+genes = unique(genes)
 
 res_chr <- c()
 res_gene <- c()

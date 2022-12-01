@@ -21,7 +21,6 @@ argv <- parse_args(p)
 library(SKAT, quietly = TRUE)
 library(data.table, quietly = TRUE)
 library(dplyr, quietly = TRUE)
-library(tidyr, quietly = TRUE)
 
 source('./Lib_v3.R')
 
@@ -39,39 +38,44 @@ for (i in 1:argv$num_cohorts){
     gwases[[i]] <- fread(argv$gwas_path[i])
 }
 
-filter_annos <- function(gwases, anno_file, annos){
+filter_annos <- function(gwases, anno_file, annotations){
 	con = file(anno_file, "r")
 	i = 0
 
-	variant_annos = data.table("var"=character(),
-							   "anno"=character())
- 	pb <- progress_bar$new(total = 31730)   	
+	#variant_annos = data.table(var=character(), anno=character())
+	row_dfs = list()
 	while ( TRUE ) {
-		pb$tick()
 		line = readLines(con, n = 1)
-		if ( length(line) == 0 ) {
-			break
-		}
+		if ( length(line) < 1 ){ break }
 		line = strsplit(line, split=" ")
+		if ( length(line[[1]]) < 3 ) {
+			next	
+		}
 		if ( i %% 2 == 0 ){
 			variants = line[[1]][3:length(line[[1]])]
 		} else {
-			tmp = data.table("var"=variants, "anno"=line[[1]][3:length(line[[1]])])
-			variant_annos = rbind(variant_annos, tmp)
+			row_dfs = append(row_dfs, list(data.table(var=variants, anno=line[[1]][3:length(line[[1]])])))
 		}
 		i = i + 1
 	}
+
+	print("binding rows")	
+	variant_annos = bind_rows(row_dfs)
 	
 	print("annofile read")
 	close(con)
+
+	print(variant_annos)
+	variant_annos = variant_annos[anno == annotations]
 	
-	variant_annos = variant_annos[variant_annos$annos %in% annos]
+	print(variant_annos)
 	for (i in 1:argv$num_cohorts){
-		gwases[[i]]$MarkerID <- gsub("chr","",as.character(SNP_infos[[i]]$variant))
+		print("cohort1")
+		gwases[[i]]$MarkerID <- gsub("chr","",as.character(gwases[[i]]$MarkerID))
 		variant_annos$var <- gsub("chr","",as.character(variant_annos$var))
+		print(gwases[[i]])	
 		print(variant_annos)
-		print(variant_annos["var",])
-		gwases[[i]] = gwases[[i]][gwases[[i]]$MarkerID %in% variant_annos["var"]]
+		gwases[[i]] = gwases[[i]][MarkerID %in% variant_annos$var]
 		print("filtered gwas cohort", i)
 	}	
 	return(gwases)

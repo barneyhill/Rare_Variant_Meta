@@ -1,6 +1,6 @@
 #!/bin/bash
 Rscript RV_meta.R \
---anno_file test_input/merged_exome_annos_VEP.txt \
+--anno_file test_input/merged_exome_annos_VEP.txt.gz \
 --annos "pLoF" \
 --num_cohorts 2 \
 --chr 7 \

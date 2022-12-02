@@ -119,6 +119,10 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     n.vec <<- c(n.vec, gwas$N_case[1] + gwas$N_ctrl[1])
 
     SNP_info_gene$Index <- SNP_info_gene$Index + 1
+    
+    SNP_info_gene <- SNP_info_gene %>%
+	mutate(POS=as.character(POS))
+
     merged <- left_join(SNP_info_gene, gwas[,c('POS', 'MarkerID', 'Allele1', 'Allele2', 'Tstat', 'var', 'p.value', 'p.value.NA')], by = c('POS' = 'POS', 'Major_Allele' = 'Allele1', 'Minor_Allele' = 'Allele2'))
     merged$adj_var <- merged$Tstat^2 / qchisq(1 - merged$p.value, df = 1)
 
@@ -135,6 +139,9 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     merged <- na.omit(merged)
     cat("\ncleaned merged nrows: ", nrow(merged), "\n")
 
+    merged <- merged %>% distinct()
+	
+    print(merged)
     if(nrow(merged) > 0){
         IsExistSNV.vec <<- c(IsExistSNV.vec, 1)
     } else{

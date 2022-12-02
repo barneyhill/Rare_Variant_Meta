@@ -69,13 +69,13 @@ filter_annos <- function(gwases, anno_file, annotations){
 	
 	print(variant_annos)
 	for (i in 1:argv$num_cohorts){
-		print("cohort1")
 		gwases[[i]]$MarkerID <- gsub("chr","",as.character(gwases[[i]]$MarkerID))
 		variant_annos$var <- gsub("chr","",as.character(variant_annos$var))
-		print(gwases[[i]])	
 		print(variant_annos)
+                cat("\nprefilter variants remaining: ", nrow(gwases[[i]]))
 		gwases[[i]] = gwases[[i]][MarkerID %in% variant_annos$var]
-		print("filtered gwas cohort", i)
+		cat("\nvariants remaining: ", nrow(gwases[[i]]))
+		cat("\nfiltered gwas cohort", i)
 	}	
 	return(gwases)
 }
@@ -111,16 +111,18 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     ############Loading Cohort1 LD and GWAS summary###############
     
     SNPinfo <- SNPinfos[[cohort]]
+    cat("\nSNPinfo rows", nrow(SNPinfo))
     SNP_info_gene = SNPinfo[which(SNPinfo$Set == gene)]
 
     gwas = gwases[[i]]
+    cat("\ngwas rows", nrow(gwas))
     n.vec <<- c(n.vec, gwas$N_case[1] + gwas$N_ctrl[1])
 
     SNP_info_gene$Index <- SNP_info_gene$Index + 1
-
     merged <- left_join(SNP_info_gene, gwas[,c('POS', 'MarkerID', 'Allele1', 'Allele2', 'Tstat', 'var', 'p.value', 'p.value.NA')], by = c('POS' = 'POS', 'Major_Allele' = 'Allele1', 'Minor_Allele' = 'Allele2'))
     merged$adj_var <- merged$Tstat^2 / qchisq(1 - merged$p.value, df = 1)
 
+    cat("\nmerged nrows: ", nrow(merged), "\n")
 
     #### Using p.value.NA if higher than 0.05
     idx<-which(merged$p.value.NA >= 0.05)
@@ -131,6 +133,7 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     
 
     merged <- na.omit(merged)
+    cat("\ncleaned merged nrows: ", nrow(merged), "\n")
 
     if(nrow(merged) > 0){
         IsExistSNV.vec <<- c(IsExistSNV.vec, 1)
@@ -162,14 +165,18 @@ for (gene in genes){
 	
         if (file.size(paste(argv$gene_file_prefix[i], gene, '.txt', sep="")) == 0L){
                 end = TRUE
-                break
+                print("empty file")
+		break
         }
 
     	load_cohort(i, gene, SNP_infos, gwases)
-		if (nrow(Info_adj.list[[i]]) == 0 | nrow(Info_adj.list[[i]]) == 1) end = TRUE
+	if (nrow(Info_adj.list[[i]]) == 0 | nrow(Info_adj.list[[i]]) == 1) end = TRUE
     }
 	
-	if (end) next
+    if (end){
+	print("finished, empty rows")
+	next
+    }
 
     ###########Meta-analysis##################
     start_MetaOneSet <- Sys.time()

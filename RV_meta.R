@@ -111,9 +111,10 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     ############Loading Cohort1 LD and GWAS summary###############
     
     SNPinfo <- SNPinfos[[cohort]]
-    cat("\nSNPinfo rows", nrow(SNPinfo))
+    cat("\nSNPinfo rows", nrow(SNPinfo), "\n")
+    print(nrow(SNPinfo))
     SNP_info_gene = SNPinfo[which(SNPinfo$Set == gene)]
-
+    print(nrow(SNP_info_gene))
     gwas = gwases[[i]]
     cat("\ngwas rows", nrow(gwas))
     n.vec <<- c(n.vec, gwas$N_case[1] + gwas$N_ctrl[1])
@@ -123,7 +124,15 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     SNP_info_gene <- SNP_info_gene %>%
 	mutate(POS=as.character(POS))
 
+    print("SNPvsGWAS")
+    print(nrow(SNP_info_gene))
+    print(nrow(gwas))
+
+    SNP_info_gene$POS <- as.numeric(SNP_info_gene$POS)
+    gwas$POS <- as.numeric(gwas$POS)
+
     merged <- left_join(SNP_info_gene, gwas[,c('POS', 'MarkerID', 'Allele1', 'Allele2', 'Tstat', 'var', 'p.value', 'p.value.NA')], by = c('POS' = 'POS', 'Major_Allele' = 'Allele1', 'Minor_Allele' = 'Allele2'))
+    #merged <- left_join(SNP_info_gene, gwas[,c('POS', 'MarkerID', 'Allele1', 'Allele2', 'Tstat', 'var', 'p.value', 'p.value.NA')], by = c('POS' = 'POS'))
     merged$adj_var <- merged$Tstat^2 / qchisq(1 - merged$p.value, df = 1)
 
     cat("\nmerged nrows: ", nrow(merged), "\n")
@@ -136,7 +145,7 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
     ####
     
 
-    merged <- na.omit(merged)
+    merged <- merged[complete.cases(merged[,c("p.value")]),]
     cat("\ncleaned merged nrows: ", nrow(merged), "\n")
 
     merged <- merged %>% distinct()

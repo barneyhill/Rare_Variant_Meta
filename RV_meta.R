@@ -82,8 +82,9 @@ filter_annos <- function(gwases, anno_file, annotations){
 
 gwases = filter_annos(gwases, argv$anno_file, argv$annos)
 
-
+cat("N genes: ", length(genes), "\n")
 genes = unique(genes)
+cat("N unique genes: ", length(genes), "\n")
 
 res_chr <- c()
 res_gene <- c()
@@ -166,8 +167,13 @@ load_cohort <- function(cohort, gene, SNPinfos, gwases){
 
 }
 
-
+x1 = 0
+x2 = 0
+n = 0
 for (gene in genes){
+    skip_to_next <- FALSE
+
+    n = n + 1 
     start <- Sys.time()
     cat('Analyzing chr ', argv$chr, ' ', gene, ' ....\n')
     
@@ -186,22 +192,27 @@ for (gene in genes){
         }
 
     	load_cohort(i, gene, SNP_infos, gwases)
-	if (nrow(Info_adj.list[[i]]) == 0 | nrow(Info_adj.list[[i]]) == 1) end = TRUE
+	    # if (nrow(Info_adj.list[[i]]) == 0 | nrow(Info_adj.list[[i]]) == 1) skip_to_next = TRUE
     }
 	
-    if (end){
-	print("finished, empty rows")
-	next
+    if (skip_to_next){
+        x1 = x1 + 1
+    	print("finished, empty rows")
+    	next
     }
 
     ###########Meta-analysis##################
     start_MetaOneSet <- Sys.time()
-    skip_to_next <- FALSE
 
-    tryCatch(out_adj<-Run_Meta_OneSet(SMat.list, Info_adj.list, n.vec=n.vec, IsExistSNV.vec=IsExistSNV.vec,  n.cohort=argv$num_cohorts), error = function(e) { skip_to_next <<- TRUE})
+    tryCatch(out_adj<-Run_Meta_OneSet(SMat.list, Info_adj.list, n.vec=n.vec, IsExistSNV.vec=IsExistSNV.vec,  n.cohort=argv$num_cohorts), error = function(e) { print(e); skip_to_next <<- TRUE })
   
-    if(skip_to_next) { next } 
+    if(skip_to_next) { 
+        x2 = x2 + 1
+        cat("Skipped the gene", gene, "\n")
+        next 
+    } 
 
+    cat("Number of skipped genes: ", x1, "/", n, "\n")
 
     end_MetaOneSet <- Sys.time()
     cat('elapsed time for Run_Meta_OneSet ', end_MetaOneSet - start_MetaOneSet , '\n')
@@ -239,3 +250,5 @@ colnames(out)<- c('CHR', 'GENE', 'Pval', 'Pval_0.00', 'Pval_0.01', 'Pval_0.04', 
 
 outpath <- argv$output_prefix
 write.table(out, outpath, row.names = F, col.names = T, quote = F)
+
+cat("FINAL number of genes: ", nrow(out), x1, x2, n)
